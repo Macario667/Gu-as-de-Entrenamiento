@@ -1,0 +1,5 @@
+# IDE metadata is specific to this local workspace.
+/.idea/
+
+# Generated Quarkus configuration metadata.
+/META-INF/
