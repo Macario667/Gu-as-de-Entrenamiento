@@ -511,3 +511,113 @@ la guía. Estructura prevista:
 - [Using OpenAPI and Swagger UI](https://quarkus.io/guides/openapi-swaggerui) — especificación y explorador interactivo de la API.
 - [Using the REST Client](https://quarkus.io/guides/rest-client) — consumo de APIs remotas o de otros servicios con interfaces tipadas.
 - [SmallRye Fault Tolerance](https://quarkus.io/guides/smallrye-fault-tolerance) — reintentos, timeouts, circuit breaker, bulkhead y fallback.
+
+# InkluSport — SmallRye Fault Tolerance
+
+Proyecto de aprendizaje desarrollado con **Quarkus 3.40.1** para practicar estrategias de tolerancia a fallos y resiliencia en servicios Java, aplicables a una arquitectura de microservicios.
+
+## Objetivo
+
+Implementar mecanismos que permitan controlar los errores, limitar las operaciones y mantener un comportamiento predecible cuando un servicio presenta fallos, lentitud o exceso de solicitudes.
+
+## Tecnologías
+
+- Java 17 o superior.
+- Quarkus 3.40.1.
+- Apache Maven.
+- JUnit 5.
+- SmallRye Fault Tolerance.
+- JAX-RS / Jakarta REST.
+- CDI para inyección de dependencias.
+
+## Estrategias implementadas
+
+| Estrategia | Propósito |
+|---|---|
+| `@Retry` | Reintentar una operación cuando falla. |
+| `@Fallback` | Proporcionar una respuesta alternativa ante un fallo. |
+| `@Timeout` | Limitar el tiempo permitido para una operación. |
+| `@CircuitBreaker` | Evitar llamadas repetidas a un servicio que falla continuamente. |
+| `@Bulkhead` | Limitar las ejecuciones simultáneas y controlar la saturación. |
+| `@RateLimit` | Limitar la cantidad de solicitudes dentro de una ventana de tiempo. |
+
+Las estrategias se prueban mediante métodos de servicio y pruebas automatizadas, incluyendo escenarios de fallos simulados.
+
+## Estructura relevante
+
+```text
+12-smallrye-fault-tolerance/
+├── src/
+│   ├── main/
+│   │   ├── java/com/inklusport/
+│   │   │   ├── api/
+│   │   │   │   └── ResilienciaResource.java
+│   │   │   ├── client/
+│   │   │   │   └── EventosClient.java
+│   │   │   └── resilience/
+│   │   │       └── ResilienciaService.java
+│   │   └── resources/
+│   │       └── application.properties
+│   └── test/
+│       └── java/com/inklusport/
+│           └── resilience/
+│               └── ResilienciaServiceTest.java
+├── pom.xml
+└── README.md
+```
+
+*La estructura representa los componentes principales trabajados durante la guía; conserva los demás paquetes y clases existentes del proyecto.*
+
+## Requisitos
+
+- JDK compatible con la versión configurada en el proyecto.
+- Maven instalado y disponible desde la terminal.
+- Acceso a Internet para descargar dependencias, si todavía no están disponibles localmente.
+
+## Ejecutar el proyecto
+
+Desde la carpeta raíz:
+
+```bash
+mvn quarkus:dev
+```
+
+La aplicación utiliza el puerto `8080`, configurado en `application.properties`.
+
+## Ejecutar las pruebas
+
+Para compilar el código y ejecutar la suite automatizada:
+
+```bash
+mvn test
+```
+
+El objetivo es verificar tanto el comportamiento esperado como la gestión de fallos y excepciones.
+
+## Configuración
+
+La configuración se encuentra en:
+
+```text
+src/main/resources/application.properties
+```
+
+Este archivo contiene propiedades generales de la aplicación, configuración de logging, opciones relacionadas con Jackson y la configuración del cliente REST.
+
+## Aprendizajes
+
+- Aplicación de estrategias de resiliencia mediante anotaciones.
+- Manejo de excepciones y respuestas alternativas.
+- Control de tiempos de espera y reintentos.
+- Protección frente a fallos repetidos y saturación.
+- Pruebas automatizadas de escenarios de error.
+- Integración de las estrategias de tolerancia a fallos en un proyecto Quarkus.
+
+## Documentación oficial
+
+- [Guía de SmallRye Fault Tolerance para Quarkus](https://quarkus.io/guides/smallrye-fault-tolerance)
+- [Documentación de SmallRye Fault Tolerance](https://smallrye.io/docs/smallrye-fault-tolerance/)
+
+## Estado del proyecto
+
+Proyecto de entrenamiento técnico correspondiente a la guía de SmallRye Fault Tolerance. La finalización se confirma después de ejecutar las pruebas, revisar la configuración y validar los cambios pendientes.
