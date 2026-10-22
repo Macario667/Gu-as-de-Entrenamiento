@@ -1,9 +1,9 @@
 # Ruta progresiva de guías Quarkus
 
-Este directorio contiene **11 proyectos Maven independientes y numerados**.
+Este directorio contiene **12 proyectos Maven independientes y numerados**.
 Cada carpeta es una etapa completa: parte del código de la carpeta anterior y
 añade únicamente el tema nuevo, de modo que la aplicación crece guía por guía.
-La carpeta 01 es la base; la 11 contiene el recorrido completo.
+La carpeta 01 es la base; la 12 contiene el recorrido completo.
 
 ## Recorrido y utilidad de cada guía
 
@@ -20,6 +20,7 @@ La carpeta 01 es la base; la 11 contiene el recorrido completo.
 | 09 | [09-validation](./09-validation/README.md) | [Validation with Hibernate Validator](https://quarkus.io/guides/validation) | Validar las entradas declarativamente y rechazar solicitudes inválidas. |
 | 10 | [10-openapi-swaggerui](./10-openapi-swaggerui/README.md) | [Using OpenAPI and Swagger UI](https://quarkus.io/guides/openapi-swaggerui) | Generar la especificación de la API y explorarla desde Swagger UI. |
 | 11 | [11-rest-client](./11-rest-client/README.md) | [Using the REST Client](https://quarkus.io/guides/rest-client) | Consumir servicios REST con métodos síncronos y asíncronos. |
+| 12 | [12-smallrye-fault-tolerance](./12-smallrye-fault-tolerance/README.md) | [SmallRye Fault Tolerance](https://quarkus.io/guides/smallrye-fault-tolerance) | Añadir reintentos, timeouts, circuit breaker, bulkhead y fallback. |
 
 ## Cómo avanzar
 
@@ -41,6 +42,6 @@ ejecutar las anteriores.
   las etapas posteriores.
 - Las carpetas sin número son ejemplos auxiliares existentes, no etapas
   adicionales ni la ruta principal. La progresión oficial de este espacio es
-  exclusivamente `01` a `11`.
+  exclusivamente `01` a `12`.
 - `quarkus-quickstarts-temp` contiene ejemplos pendientes de importar.
 - `.idea` contiene metadatos del IDE, no un proyecto Quarkus.
