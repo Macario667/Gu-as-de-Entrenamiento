@@ -281,6 +281,101 @@ las interfaces para llamar a otra API.
 | `com.inklusport/` | Ejemplos iniciales CDI/configuración (`GreetingService`, `AppConfig`) y recursos pequeños que exponen esa configuración. |
 | `src/test/` | Pruebas HTTP automatizadas que verifican rutas, estados, encabezados y comportamientos de cada capa. |
 
+### Cómo se conectan las capas: flujo de una petición
+
+Las capas colaboran en una petición, pero cada una tiene una responsabilidad:
+HTTP entra por `api`, la lógica y los datos se resuelven en `service` y `model`,
+y Quarkus convierte el resultado a la respuesta HTTP. En esta aplicación, un
+ejemplo completo es crear una actividad:
+
+```text
+Cliente HTTP / Swagger UI
+        │ POST /api/actividades + JSON
+        ▼
+Filtros logging (RequestIdFilter y LogFiltro)
+        │ correlacionan y registran la petición
+        ▼
+Quarkus REST + Jackson
+        │ deserializa JSON → ActividadInput
+        ▼
+api/ActividadResource
+        │ comprueba datos y delega la operación
+        ▼
+service/ActividadService
+        │ aplica lógica y crea el registro
+        ▼
+model/Actividad
+        │ objeto con el resultado
+        ▼
+Jackson serializa Actividad → JSON
+        │ respuesta HTTP 201 + Location
+        ▼
+Cliente HTTP / Swagger UI
+```
+
+En detalle:
+
+1. El cliente —`curl.exe`, Swagger UI u otro programa— envía método, ruta,
+   cabeceras y, para un `POST`, un cuerpo JSON.
+2. Los filtros de `logging/` observan la petición: conservan o generan
+   `X-Request-Id`, añaden datos al MDC y registran método, ruta, estado y
+   duración. No deciden el resultado funcional del CRUD.
+3. Quarkus REST resuelve `@Path`, el verbo HTTP y los parámetros. Jackson
+   convierte el cuerpo JSON en el DTO `ActividadInput`. Si el tipo de contenido
+   o el cuerpo no son adecuados, la petición puede rechazarse antes de la
+   lógica del recurso.
+4. `api/ActividadResource` aplica las validaciones manuales de este CRUD.
+   Cuando son correctas, llama a `service/ActividadService`; si no, construye
+   HTTP 400. Una consulta de id inexistente produce HTTP 404.
+5. `ActividadService` aplica las reglas de la operación y accede al mapa en
+   memoria. Crea o busca un `model/Actividad` y lo devuelve al recurso; el
+   servicio no construye la respuesta HTTP.
+6. El recurso traduce el resultado al protocolo: por ejemplo, `201 Created`,
+   cuerpo JSON y cabecera `Location`. Jackson serializa el objeto Java de
+   salida como JSON y Quarkus REST envía la respuesta. Los filtros completan
+   sus registros de salida.
+
+Otros recorridos muestran variaciones de esta misma colaboración:
+
+- **Validación declarativa:** `POST /api/validacion/eventos` deserializa el
+  cuerpo a `EventoValidadoInput`. `@Valid` hace que Hibernate Validator revise
+  las restricciones antes de ejecutar `ValidacionResource`; si incumple una,
+  Quarkus responde HTTP 400 sin pasar por el método del recurso.
+- **Errores de eventos:** `EventoResource` llama al servicio. Si el evento no
+  existe, se lanza `EventoNoEncontradoException`; `EventoNoEncontradoMapper`
+  la traduce a HTTP 404 JSON. El mapper es el adaptador entre una excepción de
+  dominio y el protocolo HTTP.
+- **Serialización personalizada:** `JsonRestResource` recibe o devuelve DTOs.
+  Jackson consulta `JacksonConfig` y `PrecioSerializer` para convertir
+  `Precio` entre objeto Java y la cadena JSON `"12.50 EUR"`. En cambio,
+  `JsonResource` usa `JsonUtil` para construir y recorrer estructuras mediante
+  JSON-P directamente.
+- **Consumo de otro endpoint:** `ClienteEventosResource` recibe la petición
+  local y llama a `EventosClient`. El cliente REST construye una llamada HTTP a
+  la URL configurada, Jackson transforma el JSON remoto a `Evento` y el
+  resultado vuelve por el recurso local al cliente original. En esta práctica
+  el destino es `/api/eventos` de la propia aplicación.
+- **Configuración transversal:** `AppConfig`, las propiedades del perfil activo
+  y `EntornoConfigSource` proveen valores a los componentes que los inyectan;
+  no son una etapa obligatoria de cada operación CRUD. `application-dev.properties`
+  y `application-prod.properties` sustituyen valores según el perfil.
+- **Documentación interactiva:** SmallRye OpenAPI lee las anotaciones de los
+  recursos y genera `/q/openapi`; Swagger UI muestra esa especificación y, al
+  pulsar **Execute**, envía una petición HTTP real al mismo flujo descrito
+  arriba. No sustituye al recurso ni al cliente REST.
+
+Resumen del camino habitual:
+
+```text
+Petición → filtros → Quarkus REST/Jackson → api → service ↔ model
+         → api/estado HTTP → Jackson → respuesta
+```
+
+`client/` se usa cuando la aplicación necesita iniciar otra petición HTTP;
+`config/` suministra valores, `json/` personaliza el procesamiento JSON y
+`logging/` observa el recorrido. Son colaboradores transversales o salientes,
+no capas que deban ejecutarse siempre en ese orden.
+
 Las rutas siguen el concepto REST: `@Path` define la URL, `@GET`/`@POST`/
 `@PUT`/`@DELETE` el método HTTP, y las anotaciones de parámetros enlazan la
 petición con Java. Los cuerpos JSON se convierten a DTO antes de entrar al
