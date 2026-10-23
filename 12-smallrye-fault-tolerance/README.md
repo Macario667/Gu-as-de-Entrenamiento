@@ -19,11 +19,12 @@ La guía de inicio de Quarkus ([Creating Your First Application](https://quarkus
 | Validación automática | `POST /api/validacion/eventos`, `EventoValidadoInput` |
 | OpenAPI y explorador interactivo | `/q/openapi`, `/q/swagger-ui` |
 | REST Client síncrono y asíncrono | `/api/cliente/eventos/sync` y `/async` |
-| SmallRye Fault Tolerance | Pendiente: se añadirá al estudiar la guía 12 (dependencia ya incluida en `pom.xml`) |
+| SmallRye Fault Tolerance | `/api/resiliencia/**`, `ResilienciaService`, políticas en `EventosClient` y pruebas de resiliencia |
 
 La aplicación usa datos en memoria: al reiniciarla se restauran los eventos y
-actividades iniciales. **No incluye base de datos ni persistencia**; el objetivo
-es practicar conceptos de las guías sin introducir infraestructura adicional.
+actividades iniciales. **La etapa de datasource todavía no está implementada**;
+la guía de referencia se usará para estudiarla por separado, mientras esta
+estructura conserva los conceptos de las doce guías anteriores.
 
 ## Requisitos y cómo ejecutar
 
@@ -486,16 +487,48 @@ responsabilidades en una sola clase.
 | `src/test/java/com/inklusport/json/JsonRestResourceTest.java` | Binding Jackson, fechas, nulos y serialización/deserialización de precio. |
 | `src/test/java/com/inklusport/logging/LoggingResourceTest.java` | Niveles de log, MDC e identificador de petición. |
 
-## SmallRye Fault Tolerance (pendiente)
+## SmallRye Fault Tolerance
 
-La extensión `quarkus-smallrye-fault-tolerance` ya está declarada en `pom.xml`.
-El código, la configuración y las pruebas de esta etapa se añadirán al estudiar
-la guía. Estructura prevista:
+La extensión `quarkus-smallrye-fault-tolerance` y los ejemplos de la guía 12 ya
+están implementados. `ResilienciaService` muestra reintentos, fallback, timeout,
+circuit breaker, bulkhead y rate limit; `EventosClient` combina tolerancia a
+fallos con el REST Client. Las pruebas correspondientes están en
+`src/test/java/com/inklusport/resilience/`.
 
-- Paquete `com.inklusport.resilience/` para la lógica con políticas de tolerancia.
-- Recursos en `api/` que expongan esos métodos al cliente HTTP.
-- Propiedades `quarkus.fault-tolerance.*` en `application.properties`.
-- Pruebas en `src/test/java/com/inklusport/resilience/`.
+## Estructura preparada para la guía de datasource
+
+La siguiente guía de referencia es [Datasource](https://quarkus.io/guides/datasource).
+Este proyecto mantiene su almacenamiento en memoria para que el tema nuevo se
+pueda estudiar aparte. No se agregaron extensiones, propiedades de conexión,
+repositorios persistentes ni datos SQL.
+
+La estructura actual ya aporta las capas que se reutilizarán al estudiar el
+tema: `api/` para HTTP, `service/` para lógica, `model/` para datos, `config/`
+para configuración, `client/` para llamadas REST, `logging/` para observabilidad
+y `src/test/` para pruebas. El punto de extensión queda documentado así:
+
+```text
+src/main/java/com/inklusport/
+├── api/                 recursos HTTP existentes
+├── client/              REST Client con resiliencia
+├── config/              configuración y perfiles existentes
+├── logging/             filtros, MDC y correlación
+├── model/               entidades y DTOs existentes
+├── resilience/          políticas de tolerancia a fallos
+├── service/             lógica actual con datos en memoria
+└── persistence/         reservado para el estudio de la guía
+
+src/test/java/com/inklusport/
+├── api/                 pruebas HTTP
+├── config/              pruebas de configuración
+├── json/                pruebas de JSON
+└── resilience/          pruebas de tolerancia a fallos
+```
+
+Al estudiar la guía, el trabajo nuevo podrá reemplazar o complementar el
+almacenamiento en memoria desde una capa propia sin mover las rutas HTTP,
+validación, serialización JSON, documentación OpenAPI, logging, clientes REST
+ni las políticas de resiliencia que ya forman parte de la aplicación.
 
 ## Relación con los enlaces de las guías anteriores
 
@@ -511,6 +544,7 @@ la guía. Estructura prevista:
 - [Using OpenAPI and Swagger UI](https://quarkus.io/guides/openapi-swaggerui) — especificación y explorador interactivo de la API.
 - [Using the REST Client](https://quarkus.io/guides/rest-client) — consumo de APIs remotas o de otros servicios con interfaces tipadas.
 - [SmallRye Fault Tolerance](https://quarkus.io/guides/smallrye-fault-tolerance) — reintentos, timeouts, circuit breaker, bulkhead y fallback.
+- [Datasource](https://quarkus.io/guides/datasource) — guía que se estudiará en la siguiente etapa; su contenido nuevo queda pendiente.
 
 # InkluSport — SmallRye Fault Tolerance
 
