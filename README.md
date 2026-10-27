@@ -1,9 +1,9 @@
 # Ruta progresiva de guías Quarkus
 
-Este directorio contiene **12 proyectos Maven independientes y numerados**.
+Este directorio contiene **14 proyectos Maven independientes y numerados**.
 Cada carpeta es una etapa completa: parte del código de la carpeta anterior y
 añade únicamente el tema nuevo, de modo que la aplicación crece guía por guía.
-La carpeta 01 es la base; la 13 contiene los aprendizajes acumulados de las guías 01–12 y queda como base para estudiar el siguiente tema.
+La carpeta 01 es la base; la 13 contiene los aprendizajes acumulados de las guías 01–12 y la 14 añade su estructura para estudiar Hibernate ORM with Panache.
 
 ## Recorrido y utilidad de cada guía
 
@@ -22,6 +22,7 @@ La carpeta 01 es la base; la 13 contiene los aprendizajes acumulados de las guí
 | 11 | [11-rest-client](./11-rest-client/README.md) | [Using the REST Client](https://quarkus.io/guides/rest-client) | Consumir servicios REST con métodos síncronos y asíncronos. |
 | 12 | [12-smallrye-fault-tolerance](./12-smallrye-fault-tolerance/README.md) | [SmallRye Fault Tolerance](https://quarkus.io/guides/smallrye-fault-tolerance) | Añadir reintentos, timeouts, circuit breaker, bulkhead y fallback. |
 | 13 | [13-datasource](./13-datasource/README.md) | [Datasource](https://quarkus.io/guides/datasource) | Proyecto acumulativo con los temas 01–12; estructura lista para estudiar datasource, sin implementar todavía el tema nuevo. |
+| 14 | [14-hibernate-orm-panache](./14-hibernate-orm-panache/README.md) | [Hibernate ORM with Panache](https://quarkus.io/guides/hibernate-orm-panache) | Proyecto acumulativo con los temas 01–13; dependencia y paquetes preparados, sin implementar todavía Hibernate ORM with Panache. |
 
 ## Cómo avanzar
 
@@ -38,11 +39,11 @@ ejecutar las anteriores.
 
 ## Notas sobre los proyectos anteriores
 
+- Las carpetas sin número son ejemplos auxiliares existentes, no etapas
+  adicionales ni la ruta principal. La progresión oficial de este espacio es
+  exclusivamente `01` a `14`.
 - La guía 03 conserva deliberadamente la implementación RESTEasy Classic. La
   guía 05 cambia a Quarkus REST (antes RESTEasy Reactive), que se mantiene en
   las etapas posteriores.
-- Las carpetas sin número son ejemplos auxiliares existentes, no etapas
-  adicionales ni la ruta principal. La progresión oficial de este espacio es
-  exclusivamente `01` a `13`.
 - `quarkus-quickstarts-temp` contiene ejemplos pendientes de importar.
 - `.idea` contiene metadatos del IDE, no un proyecto Quarkus.
