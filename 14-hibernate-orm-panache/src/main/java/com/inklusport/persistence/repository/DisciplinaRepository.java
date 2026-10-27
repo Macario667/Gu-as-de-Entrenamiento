@@ -121,6 +121,11 @@ public class DisciplinaRepository implements PanacheRepository<Disciplina> {
         );
     }
 
+    /**
+     * @param desde
+     * @param hasta
+     * @return
+     */
     public List<Disciplina> consultarPorRango(int desde, int hasta) {
         if (desde < 0 || hasta < desde) {
             throw new IllegalArgumentException("Rango no válido");
