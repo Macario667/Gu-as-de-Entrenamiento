@@ -1,0 +1,282 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Inklusport - Actividades MongoDB</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 950px;
+            margin: 30px auto;
+            padding: 0 16px;
+            color: #222;
+        }
+
+        h1, h2 { color: #174c3c; }
+
+        form, .filtros {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        input, button {
+            padding: 10px;
+            font-size: 15px;
+        }
+
+        input { flex: 1; min-width: 140px; }
+
+        button {
+            cursor: pointer;
+            border: 0;
+            border-radius: 5px;
+            background: #176b50;
+            color: white;
+        }
+
+        button.eliminar { background: #a52a2a; }
+
+        button.editar { background: #315d91; }
+
+        .actividad {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 14px;
+            margin-bottom: 10px;
+        }
+
+        .acciones {
+            display: flex;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        #mensaje { margin: 12px 0; }
+    </style>
+</head>
+<body>
+    <h1>Inklusport</h1>
+    <h2>Gestión de actividades con MongoDB</h2>
+
+    <h3>Registrar actividad</h3>
+    <form id="formActividad">
+        <input id="nombre" placeholder="Nombre" required>
+        <input id="deporte" placeholder="Deporte" required>
+        <input id="capacidad" type="number"
+               placeholder="Capacidad" min="1" required>
+        <button type="submit">Guardar</button>
+    </form>
+
+    <h3>Buscar actividades</h3>
+    <form id="formFiltros">
+        <input id="fNombre" placeholder="Nombre (parcial)">
+        <input id="fDeporte" placeholder="Deporte">
+        <input id="fCapacidad" type="number"
+               placeholder="Capacidad mínima" min="0">
+        <button type="submit">Filtrar</button>
+        <button type="button" id="limpiar">Mostrar todas</button>
+    </form>
+
+    <p id="mensaje" role="status"></p>
+    <section id="lista"></section>
+
+    <script>
+        const API = "/api/mongodb/actividades";
+        const lista = document.getElementById("lista");
+        const mensaje = document.getElementById("mensaje");
+
+        async function solicitar(url, opciones = {}) {
+            const respuesta = await fetch(url, opciones);
+
+            if (!respuesta.ok) {
+                const detalle = await respuesta.text();
+                throw new Error(
+                    detalle || `Error HTTP ${respuesta.status}`
+                );
+            }
+
+            if (respuesta.status === 204) return null;
+            return respuesta.json();
+        }
+
+        async function cargarActividades(filtros = {}) {
+            try {
+                const parametros = new URLSearchParams();
+
+                Object.entries(filtros).forEach(([clave, valor]) => {
+                    if (valor !== "" && valor != null) {
+                        parametros.set(clave, valor);
+                    }
+                });
+
+                const sufijo = parametros.size
+                    ? `/buscar?${parametros.toString()}`
+                    : "";
+
+                const actividades = await solicitar(API + sufijo);
+                lista.replaceChildren();
+
+                if (actividades.length === 0) {
+                    lista.textContent = "No se encontraron actividades.";
+                    return;
+                }
+
+                actividades.forEach(actividad => {
+                    const tarjeta = document.createElement("article");
+                    tarjeta.className = "actividad";
+
+                    const titulo = document.createElement("h3");
+                    titulo.textContent = actividad.nombre;
+
+                    const detalle = document.createElement("p");
+                    detalle.textContent =
+                        `Deporte: ${actividad.deporte} · ` +
+                        `Capacidad: ${actividad.capacidad}`;
+
+                    const identificador = document.createElement("small");
+                    identificador.textContent = `ID: ${actividad.id}`;
+
+                    const acciones = document.createElement("div");
+                    acciones.className = "acciones";
+
+                    const editar = document.createElement("button");
+                    editar.className = "editar";
+                    editar.textContent = "Editar";
+
+                    editar.addEventListener("click", async () => {
+                        const nombre = prompt(
+                            "Nombre:", actividad.nombre
+                        );
+                        if (nombre === null) return;
+
+                        const deporte = prompt(
+                            "Deporte:", actividad.deporte
+                        );
+                        if (deporte === null) return;
+
+                        const capacidad = prompt(
+                            "Capacidad:", actividad.capacidad
+                        );
+                        if (capacidad === null) return;
+
+                        if (!nombre.trim() || !deporte.trim()
+                            || !Number.isInteger(Number(capacidad))
+                            || Number(capacidad) < 1) {
+                            mensaje.textContent =
+                                "Introduce datos válidos.";
+                            return;
+                        }
+
+                        try {
+                            await solicitar(
+                                `${API}/${encodeURIComponent(actividad.id)}`,
+                                {
+                                    method: "PUT",
+                                    headers: {
+                                        "Content-Type": "application/json"
+                                    },
+                                    body: JSON.stringify({
+                                        nombre: nombre.trim(),
+                                        deporte: deporte.trim(),
+                                        capacidad: Number(capacidad)
+                                    })
+                                }
+                            );
+
+                            mensaje.textContent = "Actividad actualizada.";
+                            await cargarActividades();
+                        } catch (error) {
+                            mensaje.textContent = error.message;
+                        }
+                    });
+
+                    const eliminar = document.createElement("button");
+                    eliminar.className = "eliminar";
+                    eliminar.textContent = "Eliminar";
+
+                    eliminar.addEventListener("click", async () => {
+                        if (!confirm(
+                            `¿Eliminar "${actividad.nombre}"?`
+                        )) return;
+
+                        try {
+                            await solicitar(
+                                `${API}/${encodeURIComponent(actividad.id)}`,
+                                { method: "DELETE" }
+                            );
+
+                            mensaje.textContent = "Actividad eliminada.";
+                            await cargarActividades();
+                        } catch (error) {
+                            mensaje.textContent = error.message;
+                        }
+                    });
+
+                    acciones.append(editar, eliminar);
+                    tarjeta.append(titulo, detalle, identificador, acciones);
+                    lista.append(tarjeta);
+                });
+            } catch (error) {
+                mensaje.textContent =
+                    `No se pudieron cargar las actividades: ${error.message}`;
+            }
+        }
+
+        document.getElementById("formActividad")
+            .addEventListener("submit", async evento => {
+                evento.preventDefault();
+
+                const nombre = document.getElementById("nombre").value.trim();
+                const deporte = document.getElementById("deporte").value.trim();
+                const capacidad = Number(
+                    document.getElementById("capacidad").value
+                );
+
+                if (!nombre || !deporte ||
+                    !Number.isInteger(capacidad) || capacidad < 1) {
+                    mensaje.textContent = "Revisa los datos del formulario.";
+                    return;
+                }
+
+                try {
+                    await solicitar(API, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            nombre, deporte, capacidad
+                        })
+                    });
+
+                    evento.target.reset();
+                    mensaje.textContent = "Actividad registrada.";
+                    await cargarActividades();
+                } catch (error) {
+                    mensaje.textContent = error.message;
+                }
+            });
+
+        document.getElementById("formFiltros")
+            .addEventListener("submit", evento => {
+                evento.preventDefault();
+
+                cargarActividades({
+                    nombre: document.getElementById("fNombre").value.trim(),
+                    deporte: document.getElementById("fDeporte").value.trim(),
+                    capacidadMinima:
+                        document.getElementById("fCapacidad").value
+                });
+            });
+
+        document.getElementById("limpiar").addEventListener("click", () => {
+            document.getElementById("formFiltros").reset();
+            cargarActividades();
+        });
+
+        cargarActividades();
+    </script>
+</body>
+</html>
